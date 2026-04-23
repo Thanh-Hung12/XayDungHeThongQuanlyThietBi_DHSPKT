@@ -1,0 +1,266 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  TRUONG_KHOA
+  GIANG_VIEN
+  THU_KHO
+  SINH_VIEN
+}
+
+enum TrangThaiThietBi {
+  TOT
+  HONG
+  BAO_TRI
+  THANH_LY
+  CHO_DUYET
+}
+
+enum TrangThaiPhieu {
+  CHO_DUYET
+  DA_DUYET
+  TU_CHOI
+  DANG_MUON
+  DA_TRA
+  QUA_HAN
+}
+
+model User {
+  id               String    @id @default(cuid())
+  name             String
+  email            String    @unique
+  password         String
+  emailVerified    DateTime?
+  image            String?
+  role             Role      @default(SINH_VIEN)
+  phone            String?
+  maSoNV           String?   @unique
+  khoaId           String?
+  khoa             Khoa?     @relation(fields: [khoaId], references: [id])
+  isActive         Boolean   @default(true)
+  twoFactorEnabled Boolean   @default(false)
+  twoFactorSecret  String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  accounts         Account[]
+  sessions         Session[]
+  authenticators   Authenticator[]
+  phieuMuon        PhieuMuon[]
+  auditLogs        AuditLog[]
+  baoTriAssigned   BaoTri[]  @relation("TechnicianBaoTri")
+}
+
+model Khoa {
+  id        String     @id @default(cuid())
+  tenKhoa   String
+  maKhoa    String     @unique
+  users     User[]
+  phongs    Phong[]
+  thietBis  ThietBi[]
+  createdAt DateTime   @default(now())
+}
+
+model Phong {
+  id        String    @id @default(cuid())
+  tenPhong  String
+  maPhong   String    @unique
+  loaiPhong String
+  khoaId    String
+  khoa      Khoa      @relation(fields: [khoaId], references: [id])
+  thietBis  ThietBi[]
+  createdAt DateTime  @default(now())
+}
+
+model DanhMucThietBi {
+  id       String    @id @default(cuid())
+  tenDM    String
+  maDM     String    @unique
+  moTa     String?
+  thietBis ThietBi[]
+}
+
+model NhaCungCap {
+  id          String    @id @default(cuid())
+  tenNCC      String
+  diaChi      String?
+  soDienThoai String?
+  email       String?
+  thietBis    ThietBi[]
+}
+
+model ThietBi {
+  id             String           @id @default(cuid())
+  maThietBi      String           @unique
+  tenThietBi     String
+  moTa           String?
+  thongSoKyThuat String?
+  serialNumber   String?          @unique
+  namNhap        Int
+  giaTriBanDau   Decimal
+  baoHanhDen     DateTime?
+  trangThai      TrangThaiThietBi @default(TOT)
+  hinhAnh        String[]
+  qrCode         String?
+  danhMucId      String
+  nhaCungCapId   String?
+  khoaId         String?
+  phongId        String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  danhMuc        DanhMucThietBi   @relation(fields: [danhMucId], references: [id])
+  nhaCungCap     NhaCungCap?      @relation(fields: [nhaCungCapId], references: [id])
+  khoa           Khoa?            @relation(fields: [khoaId], references: [id])
+  phong          Phong?           @relation(fields: [phongId], references: [id])
+  phieuMuon      PhieuMuon[]
+  baoTri         BaoTri[]
+  lichSuDiChuyen LichSuDiChuyen[]
+  kiemKeItems    KiemKeItem[]
+}
+
+model LichSuDiChuyen {
+  id             String   @id @default(cuid())
+  thietBiId      String
+  tuPhong        String?
+  denPhong       String?
+  lyDo           String?
+  nguoiThucHien  String
+  ngayDiChuyen   DateTime @default(now())
+
+  thietBi        ThietBi  @relation(fields: [thietBiId], references: [id])
+}
+
+model PhieuMuon {
+  id             String          @id @default(cuid())
+  maPhieu        String          @unique @default(cuid())
+  thietBiId      String
+  nguoiMuonId    String
+  mucDich        String
+  ngayMuon       DateTime
+  ngayTraDuKien  DateTime
+  ngayTraThucTe  DateTime?
+  trangThai      TrangThaiPhieu  @default(CHO_DUYET)
+  ghiChu         String?
+  tinhTrangTra   String?
+  phiQhanHan     Decimal?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  thietBi        ThietBi         @relation(fields: [thietBiId], references: [id])
+  nguoiMuon      User            @relation(fields: [nguoiMuonId], references: [id])
+}
+
+model BaoTri {
+  id             String   @id @default(cuid())
+  thietBiId      String
+  loaiBaoTri     String
+  moTaVanDe      String
+  ketQua         String?
+  chiPhi         Decimal?
+  kyThuatVienId  String?
+  ngayBatDau     DateTime
+  ngayHoanThanh  DateTime?
+  createdAt      DateTime @default(now())
+
+  thietBi        ThietBi  @relation(fields: [thietBiId], references: [id])
+  kyThuatVien    User?    @relation("TechnicianBaoTri", fields: [kyThuatVienId], references: [id])
+}
+
+model DotKiemKe {
+  id           String       @id @default(cuid())
+  tenDot       String
+  ngayBatDau   DateTime
+  ngayKetThuc  DateTime?
+  trangThai    String       @default("DANG_THUC_HIEN")
+  nguoiTao     String
+  createdAt    DateTime     @default(now())
+
+  items        KiemKeItem[]
+}
+
+model KiemKeItem {
+  id              String    @id @default(cuid())
+  dotKiemKeId     String
+  thietBiId       String
+  trangThaiThucTe String?
+  ghiChu          String?
+  daXacNhan       Boolean   @default(false)
+  ngayXacNhan     DateTime?
+
+  dotKiemKe       DotKiemKe @relation(fields: [dotKiemKeId], references: [id])
+  thietBi         ThietBi   @relation(fields: [thietBiId], references: [id])
+
+  @@unique([dotKiemKeId, thietBiId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  entity    String
+  entityId  String?
+  detail    String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Account {
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([sessionToken])
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+model Authenticator {
+  credentialID         String  @unique
+  userId               String
+  providerAccountId    String
+  credentialPublicKey  String
+  counter              Int
+  credentialDeviceType String
+  credentialBackedUp   Boolean
+  transports           String?
+
+  user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, credentialID])
+}
