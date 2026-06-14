@@ -1,5 +1,7 @@
 "use server";
 
+import { redirect } from "next/navigation";
+
 import { recordAuditLog } from "@/lib/audit";
 import { auth, signOut } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -16,7 +18,8 @@ export async function logout() {
     });
   }
 
-  await signOut({ redirectTo: "/login" });
+  await signOut({ redirect: false });
+  redirect("/login");
 }
 
 export async function changePassword(formData: FormData) {
