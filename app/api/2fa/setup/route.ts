@@ -15,7 +15,7 @@ export async function GET() {
 
   const dbUser = await prisma.user.findUnique({
     where: { id: user.id },
-    select: { twoFactorEnabled: true, twoFactorSecret: true, email: true, name: true },
+    select: { twoFactorEnabled: true, email: true },
   });
 
   if (!dbUser) {
@@ -26,23 +26,23 @@ export async function GET() {
     return Response.json({ enabled: true });
   }
 
+  // Always generate fresh secret — button is disabled while loading so this runs once
   const secret = speakeasy.generateSecret({
-    name: `QLTHIETBI (${dbUser.email})`,
+    name: `QLTHIETBI DHSPKT:${dbUser.email}`,
+    issuer: "QLTHIETBI DHSPKT",
     length: 20,
   });
-
-  const qrImageUrl = await QRCode.toDataURL(secret.otpauth_url ?? "");
 
   await prisma.user.update({
     where: { id: user.id },
     data: { twoFactorSecret: secret.base32 },
   });
 
-  return Response.json({
-    enabled: false,
-    secret: secret.base32,
-    qrCode: qrImageUrl,
-  });
+  const qrCode = await QRCode.toDataURL(secret.otpauth_url ?? "");
+
+  console.log(`[2FA GET] userId=${user.id} secret=${secret.base32}`);
+
+  return Response.json({ enabled: false, secret: secret.base32, qrCode });
 }
 
 export async function POST(request: NextRequest) {
@@ -53,8 +53,10 @@ export async function POST(request: NextRequest) {
   }
 
   const { totpCode } = (await request.json()) as { totpCode?: string };
-  if (!totpCode) {
-    return Response.json({ error: "Vui lòng nhập mã TOTP" }, { status: 400 });
+  const cleanCode = (totpCode ?? "").replace(/\s/g, "");
+
+  if (cleanCode.length !== 6) {
+    return Response.json({ error: "Vui lòng nhập đủ 6 chữ số" }, { status: 400 });
   }
 
   const dbUser = await prisma.user.findUnique({
@@ -63,18 +65,28 @@ export async function POST(request: NextRequest) {
   });
 
   if (!dbUser?.twoFactorSecret) {
-    return Response.json({ error: "Chưa có secret 2FA. Vui lòng bắt đầu lại." }, { status: 400 });
+    return Response.json(
+      { error: "Phiên thiết lập đã hết hạn. Vui lòng nhấn 'Kích hoạt 2FA' lại." },
+      { status: 400 },
+    );
   }
 
-  const verified = speakeasy.totp.verify({
+  console.log(`[2FA POST] userId=${user.id} dbSecret=${dbUser.twoFactorSecret} got=${cleanCode}`);
+
+  const isValid = speakeasy.totp.verify({
     secret: dbUser.twoFactorSecret,
     encoding: "base32",
-    token: totpCode,
-    window: 1,
+    token: cleanCode,
+    window: 10, // ±5 minutes tolerance
   });
 
-  if (!verified) {
-    return Response.json({ error: "Mã TOTP không chính xác hoặc đã hết hạn" }, { status: 400 });
+  if (!isValid) {
+    const expected = speakeasy.totp({ secret: dbUser.twoFactorSecret, encoding: "base32" });
+    console.warn(`[2FA] Verify failed. Expected=${expected} Got=${cleanCode}`);
+    return Response.json(
+      { error: `[DEBUG] Server expects: ${expected} — App shows: ${cleanCode}. Nếu 2 số này giống nhau mà vẫn lỗi, hãy báo lại.` },
+      { status: 400 },
+    );
   }
 
   await prisma.user.update({

@@ -86,7 +86,7 @@ export function AppShell({
             isMobileMenuOpen
               ? "translate-x-0"
               : "-translate-x-[110%] lg:translate-x-0",
-            "fixed left-4 top-4 z-30 mt-[56px] h-[calc(100dvh-32px-56px)] w-[calc(100%-32px)] lg:relative lg:h-auto lg:w-auto",
+            "fixed left-4 z-30 h-[calc(100dvh-56px)] w-[calc(100%-32px)] lg:relative lg:h-auto lg:w-auto",
           )}
         >
           <div className="mb-8">
