@@ -1,13 +1,41 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AuthError } from "next-auth";
 
 import { auth, signIn } from "@/lib/auth";
 
-export default async function LoginPage() {
-  const session = await auth();
+type Props = { searchParams: Promise<{ error?: string }> };
 
-  if (session?.user) {
-    redirect("/dashboard");
+export default async function LoginPage({ searchParams }: Props) {
+  const session = await auth();
+  if (session?.user) redirect("/dashboard");
+
+  const { error } = await searchParams;
+  const errorMsg =
+    error === "CredentialsSignin" || error === "credentials"
+      ? "Email hoặc mật khẩu không đúng. Vui lòng kiểm tra lại."
+      : error === "INVALID_TOTP"
+        ? "Mã xác thực 2FA không đúng hoặc đã hết hạn."
+        : error
+          ? "Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại."
+          : null;
+
+  async function handleLogin(formData: FormData) {
+    "use server";
+    try {
+      await signIn("credentials", {
+        email: formData.get("email"),
+        password: formData.get("password"),
+        totpCode: formData.get("totpCode"),
+        redirectTo: "/dashboard",
+      });
+    } catch (err) {
+      if (err instanceof AuthError) {
+        const code = err.type === "CredentialsSignin" ? "credentials" : err.type;
+        redirect(`/login?error=${code}`);
+      }
+      throw err; // re-throw redirect errors from Next.js
+    }
   }
 
   return (
@@ -19,33 +47,34 @@ export default async function LoginPage() {
             Đăng nhập để quản lý tài sản, kho và quy trình nghiệp vụ.
           </h1>
           <p className="mt-4 max-w-md text-sm leading-7 text-slate-300">
-            Tài khoản mẫu sau khi seed:
-            <br />
-            admin@hcmute.edu.vn / Admin@123
+            Tài khoản demo sau khi seed:
           </p>
+          <div className="mt-3 space-y-1 rounded-xl bg-white/10 p-4 font-mono text-xs text-slate-200">
+            <p>admin@dhspkt.edu.vn / Admin@123456</p>
+            <p>thukho@dhspkt.edu.vn / User@123456</p>
+            <p>sinhvien@dhspkt.edu.vn / User@123456</p>
+          </div>
         </section>
+
         <section className="p-8">
           <div className="max-w-sm">
             <h2 className="text-2xl font-semibold text-slate-950">Đăng nhập hệ thống</h2>
-            <form
-              className="mt-8 space-y-4"
-              action={async (formData) => {
-                "use server";
-                await signIn("credentials", {
-                  email: formData.get("email"),
-                  password: formData.get("password"),
-                  totpCode: formData.get("totpCode"),
-                  redirectTo: "/dashboard",
-                });
-              }}
-            >
+
+            {errorMsg ? (
+              <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                {errorMsg}
+              </div>
+            ) : null}
+
+            <form className="mt-6 space-y-4" action={handleLogin}>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700">Email</label>
                 <input
                   name="email"
                   type="email"
                   required
-                  className="h-11 w-full rounded-xl border border-slate-200 px-3"
+                  autoComplete="email"
+                  className="h-11 w-full rounded-xl border border-slate-200 px-3 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
                 />
               </div>
               <div className="space-y-2">
@@ -54,7 +83,8 @@ export default async function LoginPage() {
                   name="password"
                   type="password"
                   required
-                  className="h-11 w-full rounded-xl border border-slate-200 px-3"
+                  autoComplete="current-password"
+                  className="h-11 w-full rounded-xl border border-slate-200 px-3 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
                 />
                 <div className="flex justify-end pt-1">
                   <Link
@@ -65,7 +95,10 @@ export default async function LoginPage() {
                   </Link>
                 </div>
               </div>
-              <button className="h-11 w-full rounded-xl bg-slate-950 font-medium text-white">
+              <button
+                type="submit"
+                className="h-11 w-full rounded-xl bg-slate-950 font-medium text-white transition-colors hover:bg-slate-800"
+              >
                 Đăng nhập
               </button>
             </form>
