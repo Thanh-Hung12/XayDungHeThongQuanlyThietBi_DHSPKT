@@ -96,9 +96,6 @@ export function AppShell({
             <h1 className="mt-2 text-xl font-bold tracking-tight text-slate-900">
               DHSPKT Asset Hub
             </h1>
-            <p className="mt-2 text-sm text-slate-500">
-              Quản lý thiết bị, nhập kho, phân bổ, bảo trì và thanh lý.
-            </p>
           </div>
 
           <nav className="space-y-2">

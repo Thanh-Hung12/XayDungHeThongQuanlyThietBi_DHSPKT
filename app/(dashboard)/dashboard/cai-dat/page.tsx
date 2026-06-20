@@ -10,12 +10,27 @@ import { prisma } from "@/lib/prisma";
 export default async function SettingsPage() {
   const session = await auth();
 
-  const dbUser = session?.user?.id
-    ? await prisma.user.findUnique({
+  let dbUser: {
+    twoFactorEnabled: boolean;
+    role: string;
+    khoaId: string | null;
+    maSoNV: string | null;
+    phone: string | null;
+  } | null = null;
+
+  let dbError: string | null = null;
+
+  if (session?.user?.id) {
+    try {
+      dbUser = await prisma.user.findUnique({
         where: { id: session.user.id },
         select: { twoFactorEnabled: true, role: true, khoaId: true, maSoNV: true, phone: true },
-      })
-    : null;
+      });
+    } catch {
+      dbError =
+        "Không thể tải dữ liệu cài đặt từ cơ sở dữ liệu. Một số tính năng bảo mật tạm thời không khả dụng.";
+    }
+  }
 
   return (
     <>
@@ -26,6 +41,11 @@ export default async function SettingsPage() {
       
       <main className="grid gap-6 p-6 lg:grid-cols-2">
         <div className="space-y-6">
+          {dbError ? (
+            <Card className="border-amber-200 bg-amber-50 p-4 text-amber-900 lg:col-span-2">
+              <p className="text-sm leading-6">{dbError}</p>
+            </Card>
+          ) : null}
           <Card className="p-6">
             <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-600">
