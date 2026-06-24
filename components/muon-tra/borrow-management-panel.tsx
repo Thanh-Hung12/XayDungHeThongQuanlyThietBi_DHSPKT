@@ -214,7 +214,7 @@ export function BorrowManagementPanel({
       </section>
 
       <div className="grid gap-6">
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <div className="overflow-auto rounded-2xl border border-slate-200 bg-white">
           <div className="flex items-center justify-between gap-4 border-b border-slate-200 px-5 py-4">
             <div>
               <h3 className="text-lg font-semibold text-slate-950">Danh sách phiếu mượn</h3>

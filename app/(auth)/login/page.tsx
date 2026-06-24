@@ -79,7 +79,7 @@ export default function LoginPage() {
 
   return (
     <main className="grid min-h-screen place-items-center px-6 py-12">
-      <div className="grid w-full max-w-5xl overflow-hidden rounded-[32px] border border-white/70 bg-white shadow-2xl lg:grid-cols-[1fr_420px]">
+      <div className="grid w-full max-w-5xl overflow-auto rounded-[32px] border border-white/70 bg-white shadow-2xl lg:grid-cols-[1fr_420px]">
         {/* Left panel */}
         <section className="bg-[linear-gradient(135deg,_#020617_0%,_#0f172a_45%,_#0369a1_100%)] p-10 text-white">
           <p className="text-sm uppercase tracking-[0.35em] text-sky-300">QLTHIETBI</p>

@@ -72,7 +72,7 @@ export default async function PhanBoPage() {
               Danh sách thiết bị, khoa và phòng hiện tại được lấy trực tiếp từ cơ sở dữ liệu.
             </p>
 
-            <div className="mt-6 overflow-hidden rounded-2xl border border-slate-100">
+            <div className="mt-6 overflow-auto rounded-2xl border border-slate-100">
               <table className="w-full text-sm">
                 <thead className="bg-slate-50">
                   <tr className="text-left text-slate-500">

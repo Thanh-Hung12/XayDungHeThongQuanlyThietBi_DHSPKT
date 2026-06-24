@@ -80,7 +80,7 @@ export default async function NhatKyHoatDongPage() {
               </div>
             </div>
 
-            <div className="mt-6 overflow-hidden rounded-2xl border border-slate-100">
+            <div className="mt-6 overflow-auto rounded-2xl border border-slate-100">
               <table className="w-full text-sm">
                 <thead className="bg-slate-50">
                   <tr className="text-left text-slate-500">

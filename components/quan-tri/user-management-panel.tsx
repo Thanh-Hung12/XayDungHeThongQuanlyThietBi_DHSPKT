@@ -242,7 +242,7 @@ export function UserManagementPanel({ initialUsers, khoaList }: Props) {
         </div>
       )}
 
-      <div className="overflow-hidden rounded-2xl border border-slate-100">
+      <div className="overflow-auto rounded-2xl border border-slate-100">
         <table className="w-full text-sm">
           <thead className="bg-slate-50">
             <tr className="text-left text-slate-500">
@@ -277,11 +277,10 @@ export function UserManagementPanel({ initialUsers, khoaList }: Props) {
                   <td className="px-4 py-3 text-slate-500">{user.khoa?.tenKhoa ?? "--"}</td>
                   <td className="px-4 py-3">
                     <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                        user.isActive
+                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${user.isActive
                           ? "bg-emerald-50 text-emerald-700"
                           : "bg-rose-50 text-rose-700"
-                      }`}
+                        }`}
                     >
                       {user.isActive ? "Hoạt động" : "Vô hiệu"}
                     </span>

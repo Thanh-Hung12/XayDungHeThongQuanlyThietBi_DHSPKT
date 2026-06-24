@@ -93,7 +93,7 @@ export default async function DevicesPage() {
 
         <DeviceManagementPanel
           devices={deviceRows}
-          danhMucs={danhMucs.map((item) => ({ id: item.id, label: item.tenDM }))}
+          danhMucs={danhMucs.map((item) => ({ id: item.id, label: item.tenDM, code: item.maDM }))}
           phongs={phongs.map((item) => ({ id: item.id, label: item.tenPhong }))}
           khoas={khoas.map((item) => ({ id: item.id, label: item.tenKhoa }))}
           nhaCungCaps={nhaCungCaps.map((item) => ({ id: item.id, label: item.tenNCC }))}

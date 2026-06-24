@@ -178,7 +178,7 @@ export default async function HomePage() {
           </ZoomSection>
 
           {/* Workflow Section */}
-          <ZoomSection id="quy-trinh" className="mt-8 overflow-hidden rounded-[32px] bg-white shadow-md ring-1 ring-slate-100">
+          <ZoomSection id="quy-trinh" className="mt-8 overflow-auto rounded-[32px] bg-white shadow-md ring-1 ring-slate-100">
             <div className="p-8 md:p-12 border-b border-slate-100 bg-slate-50/50">
               <p className="text-xs font-bold uppercase tracking-widest text-teal-600">Quy trình triển khai</p>
               <h2 className="mt-3 text-3xl font-bold text-slate-900">4 bước đơn giản hóa quản lý tài sản</h2>

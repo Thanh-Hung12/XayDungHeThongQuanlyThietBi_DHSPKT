@@ -53,7 +53,7 @@ export function AppShell({
   }, [pathname]);
 
   return (
-    <div className="fixed inset-0 h-[100dvh] w-screen overflow-hidden bg-slate-50 text-slate-900">
+    <div className="fixed inset-0 h-[100dvh] w-screen overflow-auto bg-slate-50 text-slate-900">
       {/* Toggle button (mobile) */}
       <div className="fixed left-4 top-4 z-20 lg:hidden">
         <button
