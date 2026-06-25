@@ -12,7 +12,7 @@ type BorrowItem = {
 
 export function BorrowTable({ data }: { data: BorrowItem[] }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+    <div className="overflow-auto rounded-2xl border border-slate-200 bg-white">
       <table className="w-full text-sm">
         <thead className="bg-slate-50">
           <tr>

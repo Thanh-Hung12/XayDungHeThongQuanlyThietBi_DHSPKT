@@ -182,7 +182,7 @@ export function InventoryManagementPanel({
                 <div key={item.id} className="rounded-2xl border border-slate-200 p-4">
                   <p className="text-base font-semibold text-slate-950">{item.tenDot}</p>
                   <p className="mt-1 text-sm text-slate-500">{item.trangThai}</p>
-                  <div className="mt-4 h-3 overflow-hidden rounded-full bg-slate-100">
+                  <div className="mt-4 h-3 overflow-auto rounded-full bg-slate-100">
                     <div
                       className={`h-full rounded-full ${item.percent === 100 ? "bg-emerald-500" : "bg-sky-500"}`}
                       style={{ width: `${item.percent}%` }}
@@ -200,7 +200,7 @@ export function InventoryManagementPanel({
         </div>
 
         {currentRound ? (
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+          <div className="overflow-auto rounded-2xl border border-slate-200 bg-white">
             <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5">
               <div>
                 <h3 className="text-lg font-semibold text-slate-950">{currentRound.tenDot}</h3>
