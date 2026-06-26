@@ -25,6 +25,7 @@ type FormValues = {
   namNhap: number;
   giaTriBanDau: number;
   baoHanhDen: string;
+  trangThai: string;
   danhMucId: string;
   nhaCungCapId: string;
   khoaId: string;
@@ -50,6 +51,13 @@ type DeviceItem = {
   phong: { tenPhong: string } | null;
 };
 
+const trangThaiOptions = [
+  { value: "TOT", label: "Tốt" },
+  { value: "HONG", label: "Hỏng" },
+  { value: "BAO_TRI", label: "Bảo trì" },
+  { value: "CHO_THANH_LY", label: "Chờ thanh lý" },
+];
+
 const emptyForm: FormValues = {
   maThietBi: "",
   tenThietBi: "",
@@ -59,6 +67,7 @@ const emptyForm: FormValues = {
   namNhap: new Date().getFullYear(),
   giaTriBanDau: 0,
   baoHanhDen: "",
+  trangThai: "TOT",
   danhMucId: "",
   nhaCungCapId: "",
   khoaId: "",
@@ -83,6 +92,7 @@ function toFormValues(device: DeviceItem): FormValues {
     namNhap: device.namNhap,
     giaTriBanDau: device.giaTriBanDau,
     baoHanhDen: toInputDate(device.baoHanhDen),
+    trangThai: device.trangThai,
     danhMucId: device.danhMucId,
     nhaCungCapId: device.nhaCungCapId ?? "",
     khoaId: device.khoaId ?? "",
@@ -254,6 +264,7 @@ export function DeviceManagementPanel({
         moTa: formValues.moTa || undefined,
         thongSoKyThuat: formValues.thongSoKyThuat || undefined,
         baoHanhDen: formValues.baoHanhDen ? new Date(formValues.baoHanhDen).toISOString() : "",
+        trangThai: formValues.trangThai || undefined,
         nhaCungCapId: formValues.nhaCungCapId || undefined,
         khoaId: formValues.khoaId || undefined,
         phongId: formValues.phongId || undefined,
@@ -405,6 +416,20 @@ export function DeviceManagementPanel({
               value={formValues.baoHanhDen}
               onChange={(event) => updateField("baoHanhDen", event.target.value)}
             />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-700">Trang thai</label>
+            <select
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition-all duration-200 hover:border-slate-300 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 focus:shadow-sm"
+              value={formValues.trangThai}
+              onChange={(event) => updateField("trangThai", event.target.value)}
+            >
+              {trangThaiOptions.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-slate-700">Nam nhap</label>

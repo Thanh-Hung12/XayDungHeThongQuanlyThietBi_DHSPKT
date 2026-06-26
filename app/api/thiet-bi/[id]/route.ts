@@ -33,6 +33,7 @@ export async function PATCH(
     where: { id },
     data: {
       ...parsed,
+      trangThai: parsed.trangThai as import("@prisma/client").TrangThaiThietBi ?? undefined,
       baoHanhDen: parsed.baoHanhDen ? new Date(parsed.baoHanhDen) : null,
     },
   });

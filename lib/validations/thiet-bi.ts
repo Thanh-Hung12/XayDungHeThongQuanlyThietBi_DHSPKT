@@ -9,6 +9,7 @@ export const thietBiSchema = z.object({
   namNhap: z.coerce.number().int().min(2000).max(2100),
   giaTriBanDau: z.coerce.number().positive(),
   baoHanhDen: z.string().datetime().optional().or(z.literal("")),
+  trangThai: z.string().optional(),
   danhMucId: z.string().min(1),
   nhaCungCapId: z.string().optional(),
   khoaId: z.string().optional(),

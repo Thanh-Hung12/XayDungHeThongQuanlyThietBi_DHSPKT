@@ -80,6 +80,7 @@ export async function POST(request: NextRequest) {
   const thietBi = await prisma.thietBi.create({
     data: {
       ...parsed,
+      trangThai: parsed.trangThai as import("@prisma/client").TrangThaiThietBi ?? undefined,
       baoHanhDen: parsed.baoHanhDen ? new Date(parsed.baoHanhDen) : null,
       hinhAnh: [],
     },
