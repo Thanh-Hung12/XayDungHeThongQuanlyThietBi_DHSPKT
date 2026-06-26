@@ -19,7 +19,7 @@ function slugifyDeviceName(name: string) {
     .slice(0, 24);
 }
 
-async function completeReceipt(id: string, userId: string) {
+async function completeReceipt(id: string, userId: string, danhMucId: string) {
   const phieu = await prisma.phieuNhap.findUnique({
     where: { id },
     include: {
@@ -60,7 +60,7 @@ async function completeReceipt(id: string, userId: string) {
             moTa: item.ghiChu ?? undefined,
             thongSoKyThuat: `Nguồn gốc phiếu nhập ${phieu.maPhieu}`,
             hinhAnh: [],
-            danhMucId: (await tx.danhMucThietBi.findFirst({ orderBy: { createdAt: "asc" }, select: { id: true } }))?.id ?? undefined,
+            danhMucId,
             nhaCungCapId: phieu.nhaCungCapId,
             khoaId: phieu.nguoiTao.khoaId ?? undefined,
           },
@@ -144,6 +144,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       return Response.json({ error: "Phiếu nhập chưa có nhà cung cấp hợp lệ" }, { status: 400 });
     }
 
+    let danhMucId: string | undefined;
     if (parsed.trangThai === "HOAN_TAT") {
       const firstCategory = await prisma.danhMucThietBi.findFirst({ select: { id: true } });
       if (!firstCategory) {
@@ -152,11 +153,12 @@ export async function PATCH(request: NextRequest, { params }: Params) {
           { status: 400 },
         );
       }
+      danhMucId = firstCategory.id;
     }
 
     const phieu =
       parsed.trangThai === "HOAN_TAT"
-        ? await completeReceipt(id, user.id)
+        ? await completeReceipt(id, user.id, danhMucId!)
         : await prisma.phieuNhap.update({
             where: { id },
             data: parsed,
