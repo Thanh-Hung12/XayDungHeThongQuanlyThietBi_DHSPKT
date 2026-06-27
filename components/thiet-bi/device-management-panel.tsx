@@ -121,7 +121,7 @@ export function DeviceManagementPanel({
   const [importResult, setImportResult] = useState<{
     success: number;
     failed: number;
-    errors: string[];
+    errors: { row: number; message: string }[];
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -158,17 +158,17 @@ export function DeviceManagementPanel({
   function handleDownloadTemplate() {
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.aoa_to_sheet([
-      ["Ma thiet bi", "Ten thiet bi", "Nam nhap", "Gia tri", "Danh muc"],
+      ["maThietBi", "tenThietBi", "namNhap", "giaTriBanDau", "danhMucId"],
       ["TB-001", "May chieu Epson", 2026, 15000000, danhMucs[0]?.code ?? danhMucs[0]?.label ?? ""],
       ["TB-002", "Laptop Dell Latitude 5440", 2026, 28500000, danhMucs[1]?.code ?? danhMucs[1]?.label ?? danhMucs[0]?.code ?? danhMucs[0]?.label ?? ""],
     ]);
     const guideSheet = XLSX.utils.aoa_to_sheet([
       ["HUONG DAN IMPORT"],
       ["1. He thong doc sheet dau tien de import."],
-      ['2. Cot "Danh muc" co the nhap maDM, ten danh muc hoac id danh muc.'],
+      ['2. Cot "danhMucId" co the nhap maDM, ten danh muc hoac id danh muc.'],
       ['3. Nen uu tien nhap maDM, vi du: "MAYCHIEU", "MAYTINH", "MANG".'],
-      ['4. Cac cot bat buoc: "Ma thiet bi", "Ten thiet bi", "Nam nhap", "Gia tri", "Danh muc".'],
-      ["5. Ma thiet bi khong duoc trung voi du lieu da co trong he thong."],
+      ['4. Cac cot bat buoc: maThietBi, tenThietBi, namNhap, giaTriBanDau, danhMucId.'],
+      ["5. Ma thiet bi (maThietBi) khong duoc trung voi du lieu da co trong he thong."],
     ]);
 
     XLSX.utils.book_append_sheet(workbook, worksheet, "ThietBi");
@@ -215,9 +215,9 @@ export function DeviceManagementPanel({
 
       const payload = (await response.json()) as {
         error?: string;
-        success?: number;
-        failed?: number;
-        errors?: string[];
+        importedCount?: number;
+        errorCount?: number;
+        errors?: { row: number; message: string }[];
       };
 
       if (!response.ok) {
@@ -225,8 +225,8 @@ export function DeviceManagementPanel({
       }
 
       const result = {
-        success: payload.success ?? 0,
-        failed: payload.failed ?? 0,
+        success: payload.importedCount ?? 0,
+        failed: payload.errorCount ?? 0,
         errors: payload.errors ?? [],
       };
 
@@ -236,7 +236,7 @@ export function DeviceManagementPanel({
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
-      router.refresh();
+      router.replace("/dashboard/thiet-bi");
     } catch (importError) {
       setError(importError instanceof Error ? importError.message : "Loi khong xac dinh");
     } finally {
@@ -292,7 +292,7 @@ export function DeviceManagementPanel({
         setFormValues(emptyForm);
       }
       setSelectedId(null);
-      router.refresh();
+      router.replace("/dashboard/thiet-bi");
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Loi khong xac dinh");
     } finally {
@@ -356,8 +356,11 @@ export function DeviceManagementPanel({
               </p>
               {importResult.errors.length > 0 ? (
                 <ul className="mt-3 list-disc space-y-1 pl-5 text-rose-600 sm:pl-6">
-                  {importResult.errors.slice(0, 5).map((item) => (
-                    <li key={item}>{item}</li>
+                  {importResult.errors.slice(0, 5).map((item, idx) => (
+                    <li key={idx}>
+                      {item.row > 0 ? `Dong ${item.row}: ` : ""}
+                      {item.message}
+                    </li>
                   ))}
                 </ul>
               ) : null}
@@ -523,8 +526,8 @@ export function DeviceManagementPanel({
               onChange={(event) => updateField("thongSoKyThuat", event.target.value)}
             />
           </div>
-          {error ? <p className="md:col-span-2 text-sm text-rose-600">{error}</p> : null}
-          {success ? <p className="md:col-span-2 text-sm text-emerald-600">{success}</p> : null}
+          {/* {error ? <p className="md:col-span-2 text-sm text-rose-600">{error}</p> : null}
+          {success ? <p className="md:col-span-2 text-sm text-emerald-600">{success}</p> : null} */}
           <div className="md:col-span-2">
             <Button type="submit" disabled={isSaving}>
               {isSaving ? "Dang luu..." : submitLabel}

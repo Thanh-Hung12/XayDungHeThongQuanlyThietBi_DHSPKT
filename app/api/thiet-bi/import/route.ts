@@ -44,7 +44,46 @@ export async function POST(request: NextRequest) {
       return Response.json({ error: "File Excel không có dữ liệu" }, { status: 400 });
     }
 
-    const headers = Object.keys(rows[0] ?? {});
+    // --- Normalize headers: support both Vietnamese and camelCase ---
+    const HEADER_MAP: Record<string, string> = {
+      mathietbi: "maThietBi",
+      ten: "tenThietBi",
+      tenthietbi: "tenThietBi",
+      namnhap: "namNhap",
+      namsudung: "namNhap",
+      giatri: "giaTriBanDau",
+      giatribandau: "giaTriBanDau",
+      danhmuc: "danhMucId",
+      danhmucid: "danhMucId",
+      madm: "danhMucId",
+      madanhmuc: "danhMucId",
+    };
+
+    function normalizeHeaderKey(key: string): string {
+      const normalized = key
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9]/g, "")
+        .toLowerCase();
+      return HEADER_MAP[normalized] ?? key;
+    }
+
+    const rawHeaders = Object.keys(rows[0] ?? {});
+    const headerMapping: Record<string, string> = {};
+    for (const raw of rawHeaders) {
+      headerMapping[raw] = normalizeHeaderKey(raw);
+    }
+
+    // Remap row keys to camelCase
+    const remappedRows = rows.map((row) => {
+      const remapped: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(row)) {
+        remapped[headerMapping[key] ?? key] = value;
+      }
+      return remapped;
+    });
+
+    const headers = Object.keys(remappedRows[0] ?? {});
     const missingColumns = REQUIRED_COLUMNS.filter((column) => !headers.includes(column));
     if (missingColumns.length > 0) {
       return Response.json(
@@ -62,7 +101,7 @@ export async function POST(request: NextRequest) {
       danhMucId: string;
     }> = [];
 
-    rows.forEach((row, index) => {
+    remappedRows.forEach((row, index) => {
       const parsed = importThietBiRowSchema.safeParse(row);
       if (!parsed.success) {
         errors.push({
@@ -102,6 +141,26 @@ export async function POST(request: NextRequest) {
         })
       ).map((item) => item.id),
     );
+
+    // Also resolve categories by maDM (category code)
+    const maDmEntries = validRows.filter((r) => !categoryIds.has(r.danhMucId));
+    if (maDmEntries.length > 0) {
+      const maDmCodes = [...new Set(maDmEntries.map((r) => r.danhMucId))];
+      const foundByMaDM = await prisma.danhMucThietBi.findMany({
+        where: { maDM: { in: maDmCodes } },
+        select: { id: true, maDM: true },
+      });
+      const maDmToId = new Map(foundByMaDM.map((c) => [c.maDM, c.id]));
+      for (const c of maDmCodes) {
+        if (maDmToId.has(c)) categoryIds.add(maDmToId.get(c)!);
+      }
+      // Remap danhMucId from maDM → actual id for rows that matched
+      for (const row of validRows) {
+        if (maDmToId.has(row.danhMucId)) {
+          row.danhMucId = maDmToId.get(row.danhMucId)!;
+        }
+      }
+    }
 
     const rowsToCreate = validRows.filter((row, index) => {
       const sheetRow = index + 2;
